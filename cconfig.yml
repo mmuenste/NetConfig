@@ -1,0 +1,15 @@
+tftp_server: 192.168.4.44
+filename_ende: opt
+devices:
+- ip: 192.168.4.10
+  username: admin
+  password: cisco
+  secret: cisco        # oder: null
+  connection: telnet   # telnet/ssh
+  platform: cisco_ios  # cisco_ios/cisco_nxos
+- ip: 192.168.4.1
+  username: null
+  password: cisco
+  secret: cisco        # oder: null
+  connection: telnet   # telnet/ssh
+  platform: cisco_ios  # cisco_ios/cisco_nxos
