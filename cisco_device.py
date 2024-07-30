@@ -44,6 +44,13 @@ class CiscoDevice:
         """Methode, um einen Neustart mit 2 Min. Verzögerung anzustoßen"""
         pass
 
+    @abc.abstractmethod
+    def erase_startup_reload(self):
+        """Methode zum Löschen der startup-config und reload anstoßen
+        Die Methode ist eine Alternative zur Verwendung von clean_up und schedule_reload.
+        """
+        pass
+
 class CiscoIos(CiscoDevice):
     def config_to_tftp(self, tftp_ip, filename_ende):
         with ConnectHandler(ip=self.ip,
@@ -97,12 +104,36 @@ class CiscoIos(CiscoDevice):
                             secret=self.secret) as session:
             print(f"Verbunden mit {self.ip}")
             session.enable()
-
+            session.save_config()
             # Neustart anstoßen
-            cmd_list_reload = [["reload in 2", "confirm"],
+            cmd_list_reload = [["reload in 2", r"confirm"],
                                ["\n", ""]]
             session.send_multiline(cmd_list_reload)
             print(f"{self.ip}: Neustart in 2 Minuten!")
+
+    def erase_startup_reload(self):
+         with ConnectHandler(ip=self.ip,
+                            username=self.username,
+                            password=self.password,
+                            device_type=self.device_type,
+                            secret=self.secret) as session:
+            print(f"Verbunden mit {self.ip}")
+            session.enable()
+            # Neustart anstoßen
+            cmd_list = ["event manager applet ERASE",
+                        "event timer countdown time 10",
+                        'action 1.0 cli command "enable"',
+                        'action 2.0 cli command "wr"',
+                        'action 3.0 cli command "reload in 3" pattern "confirm"',
+                        'action 4.0 cli command "y"',
+                        'action 5.0 cli command "erase startup-config" pattern "confirm"',
+                        'action 6.0 cli command "y"',
+                        'action 7.0 cli command "delete /force flash:vlan.dat"'
+                        ]
+            session.send_command(cmd_list)
+            print(f"{self.ip}: Startup-config gelöscht und Reload angestoßen!")
+
+
 
 
 class CiscoNxos(CiscoDevice):
@@ -155,3 +186,19 @@ class CiscoNxos(CiscoDevice):
             session.send_multiline(cmd_list_reload)
              
             print(f"{self.ip}: Neustart in 2 Minuten!")
+
+    def erase_startup_reload(self):
+        with ConnectHandler(ip=self.ip,
+                            username=self.username,
+                            password=self.password,
+                            device_type=self.device_type,
+                            ) as session:
+            print(f"Verbunden mit {self.ip}")
+            # Neustart anstoßen
+            cmd_list = ["terminal dont-ask",
+                        "delete bootflash:vlan.dat no-prompt",
+                        "write erase",
+                        "reload"]
+                        
+            session.send_command(cmd_list)
+            print(f"{self.ip}: Startup-config gelöscht und Reload angestoßen!")
