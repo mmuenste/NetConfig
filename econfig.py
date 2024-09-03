@@ -7,7 +7,9 @@ from netmiko import exceptions
 import yaml
 
 
-def call_clean_up(device):
+def esr(device):
+    """esr = Erase Startup-config and Reload
+    """
 
     device_obj = cisco_device.create_device(ip=device["ip"],
                                             username=device["username"],
@@ -17,25 +19,7 @@ def call_clean_up(device):
                                             platform=device["platform"])
 
     try:
-        device_obj.clean_up()
-
-    except exceptions.NetmikoAuthenticationException as ex:
-        print(ex, end="\n\n")
-    except (TimeoutError, exceptions.NetmikoTimeoutException) as ex:
-        print(f"{device['ip']}", ex, end="\n\n")
-
-
-def schedule_reloads(device):
-
-    device_obj = cisco_device.create_device(ip=device["ip"],
-                                            username=device["username"],
-                                            password=device["password"],
-                                            secret=device["secret"],
-                                            connection=device["connection"],
-                                            platform=device["platform"])
-
-    try:
-        device_obj.schedule_reload()
+        device_obj.erase_startup_reload()
 
     except exceptions.NetmikoAuthenticationException as ex:
         print(ex, end="\n\n")
@@ -51,7 +35,7 @@ def main():
     ==================================================
 
     econfig (-->erase config): Tool zum Löschen der Startup-Config und 
-     Anstoßen eines Neustarts (2 min Verzögerung) von Cisco Devices
+     Anstoßen eines Neustarts von Cisco Devices
     Das Tool ist konzipiert fuer Cisco IOS (Telnet, SSH) und Cisco NX-OS (SSH).
     """
 
@@ -73,13 +57,7 @@ def main():
     # Neustarts in Auftrag geben
     #with concurrent.futures.ProcessPoolExecutor(max_workers=5) as executor:
         #e_1 = executor.map(schedule_reloads, device_list)
-    e_1 = list(map(schedule_reloads, device_list))
-
-
-    # Startup-Configs löschen [Bei Switchen auch vlan.dat löschen]
-    #with concurrent.futures.ProcessPoolExecutor(max_workers=5) as executor:
-        #e_2 = executor.map(call_clean_up, device_list)
-    e_2 = list(map(call_clean_up, device_list))
+    ausfuehrung = list(map(esr, device_list))
 
     print("*** Vorgang abgeschlossen! ***")
 

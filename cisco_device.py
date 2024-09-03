@@ -130,7 +130,7 @@ class CiscoIos(CiscoDevice):
                         'action 6.0 cli command "y"',
                         'action 7.0 cli command "delete /force flash:vlan.dat"'
                         ]
-            session.send_command(cmd_list)
+            session.send_config_set(cmd_list)
             print(f"{self.ip}: Startup-config gelöscht und Reload angestoßen!")
 
 
@@ -200,5 +200,5 @@ class CiscoNxos(CiscoDevice):
                         "write erase",
                         "reload"]
                         
-            session.send_command(cmd_list)
+            session.send_config_set(cmd_list)
             print(f"{self.ip}: Startup-config gelöscht und Reload angestoßen!")
